@@ -1,45 +1,30 @@
 #include <stdio.h>
 #include <engine.h>
-#include <stdbool.h>
+#include <vx_panic.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
+typedef struct {
+	int i;
+} gm_State;
+
+void gm_init(gm_State* state, SDL_Renderer* renderer) {
+	state->i = 0;
+	SDL_SetRenderDrawColor(renderer, 255, 64, 128, 255);
+}
+void gm_logic(gm_State* state, SDL_Renderer* renderer, f64 delta) {}
+void gm_draw(gm_State* state, SDL_Renderer* renderer) {}
+void gm_close(gm_State* state, SDL_Renderer* renderer) {}
 
 int main() {
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
-		return EXIT_FAILURE;
-	}
+	vx_WindowDescriptor descriptor = VX_DEFAULT(vx_WindowDescriptor);
+	descriptor.init_fn = (vx_Callback)gm_init;
+	descriptor.logic_fn = (vx_Callback)gm_logic;
+	descriptor.draw_fn = (vx_Callback)gm_draw;
+	descriptor.close_fn = (vx_Callback)gm_close;
 
-	SDL_Window* win = SDL_CreateWindow("Hello World!", 100, 100, 620, 387, SDL_WINDOW_SHOWN);
-	if (win == NULL) {
-		fprintf(stderr, "SDL_CreateWindow Error: %s\n", SDL_GetError());
-		return EXIT_FAILURE;
-	}
-
-	SDL_Renderer* ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	if (ren == NULL) {
-		fprintf(stderr, "SDL_CreateRenderer Error: %s\n", SDL_GetError());
-		SDL_DestroyWindow(win);
-		SDL_Quit();
-		return EXIT_FAILURE;
-	}
-
-    bool quit = false;
-    SDL_Event e;
-
-    while (!quit) {
-        while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-        }
-
-        SDL_RenderClear(ren);
-		SDL_RenderPresent(ren);
-    }
-
-	SDL_DestroyRenderer(ren);
-	SDL_DestroyWindow(win);
-    SDL_Quit();
-
-    return EXIT_SUCCESS;
+	gm_State state;
+	vx_Window window = vx_window_new(&descriptor, &state);
+	vx_window_run(&window);
+	vx_window_free(&window);
 }

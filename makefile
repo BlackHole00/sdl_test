@@ -3,8 +3,8 @@ AR = ar
 
 SRC_DIR = src
 BUILD_DIR = build
-LIBS = -lSDL2
-INCLUDES =
+LIBS = -Llibs/vx_utils/bin -lSDL2_image -lSDL2 -lvxutils
+INCLUDES = -Ilibs/vx_utils/includes
 ARGS = -Wall -std=c2x -g -O0 -D_DEBUG $(LIBS) $(INCLUDES)
 
 ##### MODULES ######
@@ -14,10 +14,10 @@ ENGINE_BUILD_DIR = $(BUILD_DIR)/engine
 ENGINE_OUTPUT_DIR = $(ENGINE_BUILD_DIR)/export
 ENGINE_OUTPUT_LIB_DIR = $(ENGINE_OUTPUT_DIR)/lib
 ENGINE_OUTPUT_INC_DIR = $(ENGINE_OUTPUT_DIR)/include
-ENGINE_OUTPUT_LIB_NAME = libengine.a
+ENGINE_OUTPUT_LIB_NAME = libengine.so
 ENGINE_OUTPUT_LIB = $(ENGINE_OUTPUT_LIB_DIR)/$(ENGINE_OUTPUT_LIB_NAME)
-ENGINE_OBJS = engine/engine.o
-ENGINE_OBJS_PATH = $(ENGINE_BUILD_DIR)/engine.o
+ENGINE_OBJS = engine/os/window.o
+ENGINE_OBJS_PATH = $(ENGINE_BUILD_DIR)/os/window.o
 ENGINE_INCLUDES =
 ENGINE_LIBS =
 ENGINE_ARGS = $(ARGS) $(MAIN_LIBS) $(MAIN_INCLUDES)
@@ -39,16 +39,17 @@ MAIN_ARGS = $(ARGS) $(MAIN_LIBS) $(MAIN_INCLUDES)
 main/main.o:
 	$(CC) -c $(MAIN_SRC_DIR)/main.c -o $(MAIN_BUILD_DIR)/main.o $(MAIN_ARGS)
 # ENGINE FILES
-engine/engine.o:
-	$(CC) -c $(ENGINE_SRC_DIR)/engine.c -o $(ENGINE_BUILD_DIR)/engine.o $(ENGINE_ARGS)
+engine/os/window.o:
+	$(CC) -c $(ENGINE_SRC_DIR)/os/window.c -o $(ENGINE_BUILD_DIR)/os/window.o $(ENGINE_ARGS)
 
 #####GENERAL#####
 engine: $(ENGINE_OBJS)
-	$(AR) rcs $(ENGINE_OUTPUT_LIB) $(ENGINE_OBJS_PATH)
-	cp -u $(ENGINE_SRC_DIR)/*.h $(ENGINE_OUTPUT_INC_DIR)
+	$(CC) -shared $(ENGINE_OBJS_PATH) -o $(ENGINE_OUTPUT_LIB) $(MAIN_ARGS)
+	cp -RT $(ENGINE_SRC_DIR) $(ENGINE_OUTPUT_INC_DIR)
+	find $(ENGINE_OUTPUT_INC_DIR) -name "*.c" -type f -delete
 
 main: engine $(MAIN_OBJS)
-	$(CC) $(MAIN_OBJS_PATH) -o $(MAIN_OUTPUT_APP) $(MAIN_ARGS)
+	$(CC) $(MAIN_OBJS_PATH) -o $(MAIN_OUTPUT_APP) $(MAIN_ARGS) -Wl,-rpath $(ENGINE_OUTPUT_LIB_DIR)
 
 all: engine main;
 

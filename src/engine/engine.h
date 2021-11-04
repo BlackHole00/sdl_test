@@ -1,3 +1,3 @@
 #pragma once
-
-int func();
+#include <vx_types.h>
+#include "os/os.h"
